@@ -2,6 +2,8 @@
 - name: Meraki infrastructure Health - ALL
   hosts: localhost
   connection: local
+  vars:
+    meraki_api_key: meraki_api_key
   gather_facts: false
   roles:
     - role: network.meraki_ops.health_checks

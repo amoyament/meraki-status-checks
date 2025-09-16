@@ -1,0 +1,6 @@
+---
+- name: Meraki infrastructure Health - ALL
+  hosts: localhost
+  gather_facts: false
+  roles:
+    - role: network.meraki_ops.health_checks

@@ -1,69 +1,54 @@
 ---
-- name: "Debug by listing all installed collections at runtime"
+- name: "Health Check & Audit for Meraki Guest WiFi Policy"
   hosts: localhost
   connection: local
   gather_facts: false
 
+  # --- Define your organization and policy here ---
+  vars:
+    meraki_api_key: "{{ meraki_key }}"
+    meraki_org_name: "Meraki Launchpad"
+    meraki_network_name: "London"
+
+    # This is our "Golden Configuration" policy
+    policy:
+      ssid_name: "Corporate Guest WiFi"
+      traffic_shaping_enabled: true
+
   tasks:
-    - name: "Run ansible-galaxy collection list"
-      ansible.builtin.command: "ansible-galaxy collection list"
-      register: galaxy_output
-      changed_when: false
+    # --- HEALTH CHECK: GATHER DATA ---
+    - name: "HEALTH CHECK -> Get all SSID configurations from Meraki"
+      network.meraki_ops.meraki_ssids_info:
+        meraki_api_key: "{{ meraki_api_key }}"
+        meraki_org: "{{ meraki_org_name }}"
+        meraki_net: "{{ meraki_network_name }}"
+      register: current_ssids
 
-    - name: "Display the list of installed collections"
+    # --- PROCESS DATA: Find our specific Guest SSID ---
+    - name: "Find our specific Guest SSID from the list"
+      ansible.builtin.set_fact:
+        guest_ssid_details: "{{ current_ssids.meraki_response | selectattr('name', 'equalto', policy.ssid_name) | list | first }}"
+      when: current_ssids.meraki_response is defined
+
+    # --- AUDIT: CHECK THE POLICY ---
+    - name: "AUDIT -> Check if Guest SSID was found"
       ansible.builtin.debug:
-        var: galaxy_output.stdout_lines
-# ---
-# - name: "Health Check & Audit for Meraki Guest WiFi Policy"
-#   hosts: localhost
-#   connection: local
-#   gather_facts: false
+        msg: "❌ AUDIT FAILURE: The required SSID '{{ policy.ssid_name }}' does not exist!"
+      when: guest_ssid_details is not defined
 
-#   # --- Define your organization and policy here ---
-#   vars:
-#     meraki_api_key: "{{ meraki_key }}"
-#     meraki_org_name: "Meraki Launchpad"
-#     meraki_network_name: "London"
+    - name: "AUDIT -> Verify if Traffic Shaping is compliant"
+      ansible.builtin.debug:
+        msg: |
+          ---------------------------------------------------------------------
+          ✅ COMPLIANT: Traffic Shaping for '{{ policy.ssid_name }}' is enabled.
+          ---------------------------------------------------------------------
+      when: guest_ssid_details.perClientBandwidthLimits.settings == 'enabled'
 
-#     # This is our "Golden Configuration" policy
-#     policy:
-#       ssid_name: "Corporate Guest WiFi"
-#       traffic_shaping_enabled: true
-
-#   tasks:
-#     # --- HEALTH CHECK: GATHER DATA ---
-#     - name: "HEALTH CHECK -> Get all SSID configurations from Meraki"
-#       ansible.network.meraki_ops.meraki_ssids_info:
-#         meraki_api_key: "{{ meraki_api_key }}"
-#         meraki_org: "{{ meraki_org_name }}"
-#         meraki_net: "{{ meraki_network_name }}"
-#       register: current_ssids
-
-#     # --- PROCESS DATA: Find our specific Guest SSID ---
-#     - name: "Find our specific Guest SSID from the list"
-#       ansible.builtin.set_fact:
-#         guest_ssid_details: "{{ current_ssids.meraki_response | selectattr('name', 'equalto', policy.ssid_name) | list | first }}"
-#       when: current_ssids.meraki_response is defined
-
-#     # --- AUDIT: CHECK THE POLICY ---
-#     - name: "AUDIT -> Check if Guest SSID was found"
-#       ansible.builtin.debug:
-#         msg: "❌ AUDIT FAILURE: The required SSID '{{ policy.ssid_name }}' does not exist!"
-#       when: guest_ssid_details is not defined
-
-#     - name: "AUDIT -> Verify if Traffic Shaping is compliant"
-#       ansible.builtin.debug:
-#         msg: |
-#           ---------------------------------------------------------------------
-#           ✅ COMPLIANT: Traffic Shaping for '{{ policy.ssid_name }}' is enabled.
-#           ---------------------------------------------------------------------
-#       when: guest_ssid_details.perClientBandwidthLimits.settings == 'enabled'
-
-#     - name: "AUDIT -> Report non-compliance for Traffic Shaping"
-#       ansible.builtin.debug:
-#         msg: |
-#           -------------------------------------------------------------------------
-#           ❌ NON-COMPLIANT: Traffic Shaping for '{{ policy.ssid_name }}' is DISABLED.
-#           Policy requires it to be enabled.
-#           -------------------------------------------------------------------------
-#       when: guest_ssid_details.perClientBandwidthLimits.settings != 'enabled'
+    - name: "AUDIT -> Report non-compliance for Traffic Shaping"
+      ansible.builtin.debug:
+        msg: |
+          -------------------------------------------------------------------------
+          ❌ NON-COMPLIANT: Traffic Shaping for '{{ policy.ssid_name }}' is DISABLED.
+          Policy requires it to be enabled.
+          -------------------------------------------------------------------------
+      when: guest_ssid_details.perClientBandwidthLimits.settings != 'enabled'

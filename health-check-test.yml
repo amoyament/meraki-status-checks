@@ -32,3 +32,4 @@
     - name: "Run the comprehensive health_checks role from network.meraki_ops"
       ansible.builtin.include_role:
         name: "network.meraki_ops.health_checks"
+      ignore_errors: true

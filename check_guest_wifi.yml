@@ -6,6 +6,7 @@
 
   # --- Define your organization and policy here ---
   vars:
+    meraki_api_key: "{{ meraki_api_key }}"
     meraki_org_name: "Meraki Launchpad"
     meraki_network_name: "London"
 

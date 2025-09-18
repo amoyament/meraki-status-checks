@@ -33,6 +33,4 @@
       ansible.builtin.include_role:
         name: "network.meraki_ops.health_checks"
       vars:
-        # This tells the role to ONLY run against a specific list of networks
-        # to ensure a clean run that produces the HTML report.
-        meraki_health_networks: "{{ meraki_networks_to_scan  }}"
+        network_ids: "{{ network_ids }}"

@@ -19,7 +19,7 @@
     # --- HEALTH CHECK: GATHER DATA ---
     - name: "HEALTH CHECK -> Get all SSID configurations from Meraki"
       network.meraki_ops.meraki_ssids_info:
-        meraki_api_key: "{{ meraki_api_key }}"
+        meraki_api_key: "{{ meraki_key }}"
         meraki_org: "{{ meraki_org_name }}"
         meraki_net: "{{ meraki_network_name }}"
       register: current_ssids

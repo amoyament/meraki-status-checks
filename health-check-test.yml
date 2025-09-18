@@ -1,9 +1,34 @@
 ---
-- name: Meraki infrastructure Health - ALL
+- name: "Run Meraki Organization Health Audit"
   hosts: localhost
   connection: local
-  vars:
-    meraki_api_key: meraki_api_key
   gather_facts: false
-  roles:
-    - role: network.meraki_ops.health_checks
+  module_defaults:
+    cisco.meraki.organizations_info:
+      meraki_api_key: "{{ meraki_api_key }}"
+      meraki_org_id: "{{ meraki_org_id }}"
+    cisco.meraki.organizations_firmware_upgrades_info:
+      meraki_api_key: "{{ meraki_api_key }}"
+      meraki_org_id: "{{ meraki_org_id }}"
+    cisco.meraki.organizations_wireless_devices_channel_utilization_by_network_info:
+      meraki_api_key: "{{ meraki_api_key }}"
+    cisco.meraki.networks_info:
+      meraki_api_key: "{{ meraki_api_key }}"
+    cisco.meraki.networks_health_alerts_info:
+      meraki_api_key: "{{ meraki_api_key }}"
+    cisco.meraki.networks_firmware_upgrades_info:
+      meraki_api_key: "{{ meraki_api_key }}"
+    cisco.meraki.networks_switch_stp_info:
+      meraki_api_key: "{{ meraki_api_key }}"
+    cisco.meraki.networks_switch_mtu_info:
+      meraki_api_key: "{{ meraki_api_key }}"
+    cisco.meraki.networks_switch_storm_control_info:
+      meraki_api_key: "{{ meraki_api_key }}"
+    cisco.meraki.networks_wireless_rf_profiles_info:
+      meraki_api_key: "{{ meraki_api_key }}"
+    cisco.meraki.networks_wireless_ssids_info:
+      meraki_api_key: "{{ meraki_api_key }}"
+  tasks:
+    - name: "Run the comprehensive health_checks role from network.meraki_ops"
+      ansible.builtin.include_role:
+        name: "network.meraki_ops.health_checks"

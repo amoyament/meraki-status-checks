@@ -1,0 +1,17 @@
+---
+- name: Meraki report generation
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  module_defaults:
+    cisco.meraki.networks_info:
+      meraki_api_key: '{{ meraki_api_key }}'
+    cisco.meraki.networks_appliance_firewall_cellular_firewall_rules_info:
+      meraki_api_key: '{{ meraki_api_key }}'
+  vars:
+    meraki_api_key: '{{ meraki_api_key }}'
+    meraki_org_id: "537758"
+    # meraki_network_id: "L_787004034882998704"
+  roles:
+    - role: network.meraki_ops.report
+      category: firewalls

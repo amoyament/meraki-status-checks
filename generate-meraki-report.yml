@@ -1,0 +1,51 @@
+---
+- name: "Run Meraki Organization Health Audit"
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  module_defaults:
+    cisco.meraki.organizations_info:
+      meraki_api_key: "{{ meraki_api_key }}"
+    cisco.meraki.organizations_firmware_upgrades_info:
+      meraki_api_key: "{{ meraki_api_key }}"
+      meraki_org_id: "{{ meraki_org_id }}"
+    cisco.meraki.organizations_wireless_devices_channel_utilization_by_network_info:
+      meraki_api_key: "{{ meraki_api_key }}"
+    cisco.meraki.networks_info:
+      meraki_api_key: "{{ meraki_api_key }}"
+    cisco.meraki.networks_health_alerts_info:
+      meraki_api_key: "{{ meraki_api_key }}"
+    cisco.meraki.networks_firmware_upgrades_info:
+      meraki_api_key: "{{ meraki_api_key }}"
+    cisco.meraki.networks_switch_stp_info:
+      meraki_api_key: "{{ meraki_api_key }}"
+    cisco.meraki.networks_switch_mtu_info:
+      meraki_api_key: "{{ meraki_api_key }}"
+    cisco.meraki.networks_switch_storm_control_info:
+      meraki_api_key: "{{ meraki_api_key }}"
+    cisco.meraki.networks_wireless_rf_profiles_info:
+      meraki_api_key: "{{ meraki_api_key }}"
+    cisco.meraki.networks_wireless_ssids_info:
+      meraki_api_key: "{{ meraki_api_key }}"
+    cisco.meraki.organizations_wireless_devices_ethernet_statuses_info:
+      meraki_api_key: "{{ meraki_api_key }}"
+    cisco.meraki.organizations_admins_info:
+      meraki_api_key: "{{ meraki_api_key }}"
+    cisco.meraki.organizations_api_requests_info:
+      meraki_api_key: "{{ meraki_api_key }}"
+    cisco.meraki.devices_info:
+      meraki_api_key: "{{ meraki_api_key }}"
+    cisco.meraki.networks_appliance_firewall_cellular_firewall_rules_info:
+      meraki_api_key: "{{ meraki_api_key }}"
+    cisco.meraki.networks_appliance_firewall_inbound_firewall_rules_info:
+      meraki_api_key: "{{ meraki_api_key }}"
+    cisco.meraki.networks_appliance_firewall_l3_firewall_rules_info:
+      meraki_api_key: "{{ meraki_api_key }}"
+    cisco.meraki.networks_appliance_firewall_l7_firewall_rules_info:
+      meraki_api_key: "{{ meraki_api_key }}"
+  tasks:
+    - name: "Run the report role to generate the HTML artifact"
+      ansible.builtin.include_role:
+        name: "network.meraki_ops.report"
+      vars:
+        category: '{{ category_input }}'

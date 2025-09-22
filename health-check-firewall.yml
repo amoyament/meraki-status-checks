@@ -80,6 +80,12 @@
       changed_when: true
       when: check_pci_rule.failed | default(false)
 
+    - name: "COMPLETE: Missing 'PCI COMPLIANCE' rule was successfully added."
+      ansible.builtin.debug:
+        msg: "COMPLETE: '{{ golden_rules[1].comment }}' ADDED to network {{ target_network_id }}."
+      changed_when: true
+      when: check_pci_rule.failed | default(false)
+
     # --- POLICY CHECK 3: Threat Intel Rule ---
     - name: "AUDIT: Check for 'THREAT INTEL' rule"
       ansible.builtin.assert:
@@ -92,5 +98,11 @@
     - name: "ENFORCE: Add missing 'THREAT INTEL' rule"
       ansible.builtin.debug:
         msg: "ENFORCEMENT: Adding rule '{{ golden_rules[2].comment }}' to network {{ target_network_id }}."
+      changed_when: true
+      when: check_threat_intel_rule.failed | default(false)
+
+    - name: "COMPLETE: Missing 'HREAT INTEL' rule was successfully added."
+      ansible.builtin.debug:
+        msg: "COMPLETE: '{{ golden_rules[2].comment }}' ADDED to network {{ target_network_id }}."
       changed_when: true
       when: check_threat_intel_rule.failed | default(false)

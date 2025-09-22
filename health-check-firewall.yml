@@ -100,7 +100,7 @@
       changed_when: true
       when: check_threat_intel_rule.failed | default(false)
 
-    - name: "COMPLETE: Missing 'HREAT INTEL' rule was successfully added."
+    - name: "COMPLETE: Missing 'THREAT INTEL' rule was successfully added."
       ansible.builtin.debug:
         msg: "COMPLETE: '{{ golden_rules[2].comment }}' ADDED to network {{ target_network_id }}."
       when: check_threat_intel_rule.failed | default(false)

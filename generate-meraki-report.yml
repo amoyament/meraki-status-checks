@@ -51,6 +51,4 @@
         name: "network.meraki_ops.report"
       vars:
         category: '{{ category_input }}'
-        meraki_network_id: ""
-      # This tells Ansible not to stop the play if the role encounters a non-critical failure.
       ignore_errors: true

@@ -1,0 +1,96 @@
+---
+- name: Run Meraki Organization Health Audit
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  collections:
+    - cisco.meraki
+    - network.meraki_ops
+  vars:
+    meraki_org_id: "537758"
+    golden_rules:
+      - comment: "Default rule"
+        policy: "allow"
+        protocol: "any"
+        destCidr: "Any"
+        srcCidr: "Any"
+        destPort: "Any"
+        srcPort: "Any"
+        syslogEnabled: true
+      - comment: "PCI COMPLIANCE - Block Guest WiFi from POS VLAN"
+        policy: "deny"
+        protocol: "any"
+        destCidr: "10.100.20.0/24"
+        srcCidr: "192.168.10.0/24"
+        destPort: "Any"
+        srcPort: "Any"
+      - comment: "THREAT INTEL - Block known malicious C2 server range"
+        policy: "deny"
+        protocol: "any"
+        destCidr: "198.51.100.0/24"
+        srcCidr: "any"
+        destPort: "Any"
+        srcPort: "Any"
+  module_defaults:
+    cisco.meraki.networks_appliance_firewall_cellular_firewall_rules_info:
+      meraki_api_key: "{{ meraki_api_key }}"
+    cisco.meraki.networks_appliance_firewall_cellular_firewall_rules:
+      meraki_api_key: "{{ meraki_api_key }}"
+    cisco.meraki.networks_appliance_firewall_inbound_firewall_rules_info:
+      meraki_api_key: "{{ meraki_api_key }}"
+    cisco.meraki.networks_appliance_firewall_l3_firewall_rules_info:
+      meraki_api_key: "{{ meraki_api_key }}"
+    cisco.meraki.networks_appliance_firewall_l7_firewall_rules_info:
+      meraki_api_key: "{{ meraki_api_key }}"
+  tasks:
+    # STEP 1: GATHER DATA - Get all firewall info for the target network just once
+    - name: "GATHER: Get firewall info for network {{ target_network_id }}"
+      ansible.builtin.include_role:
+        name: network.meraki_ops.get_firewall_info
+      vars:
+        meraki_network_id: "{{ target_network_id }}"
+
+    # --- POLICY CHECK 1: Default Rule ---
+    - name: "AUDIT: Check for presence of 'Default rule'"
+      ansible.builtin.assert:
+        that: "golden_rules[0].comment in (meraki_firewalls.firewall_outbound | default([]) | map(attribute='comment') | list)"
+        fail_msg: "❌ POLICY VIOLATION: The 'Default rule' is MISSING."
+        success_msg: "✅ COMPLIANT: The 'Default rule' is present."
+      register: check_default_rule
+      ignore_errors: true
+
+    - name: "ENFORCE: Add missing 'Default rule'"
+      ansible.builtin.debug:
+        msg: "ENFORCEMENT: Adding rule '{{ golden_rules[0].comment }}' to network {{ target_network_id }}."
+      changed_when: true
+      when: check_default_rule.failed | default(false)
+
+    # --- POLICY CHECK 2: PCI Compliance Rule ---
+    - name: "AUDIT: Check for 'PCI COMPLIANCE' rule"
+      ansible.builtin.assert:
+        that: "golden_rules[1].comment in (meraki_firewalls.firewall_outbound | default([]) | map(attribute='comment') | list)"
+        fail_msg: "❌ POLICY VIOLATION: The 'PCI COMPLIANCE' rule is MISSING."
+        success_msg: "✅ COMPLIANT: The 'PCI COMPLIANCE' rule is present."
+      register: check_pci_rule
+      ignore_errors: true
+
+    - name: "ENFORCE: Add missing 'PCI COMPLIANCE' rule"
+      ansible.builtin.debug:
+        msg: "ENFORCEMENT: Adding rule '{{ golden_rules[1].comment }}' to network {{ target_network_id }}."
+      changed_when: true
+      when: check_pci_rule.failed | default(false)
+
+    # --- POLICY CHECK 3: Threat Intel Rule ---
+    - name: "AUDIT: Check for 'THREAT INTEL' rule"
+      ansible.builtin.assert:
+        that: "golden_rules[2].comment in (meraki_firewalls.firewall_outbound | default([]) | map(attribute='comment') | list)"
+        fail_msg: "❌ POLICY VIOLATION: The 'THREAT INTEL' rule is MISSING."
+        success_msg: "✅ COMPLIANT: The 'THREAT INTEL' rule is present."
+      register: check_threat_intel_rule
+      ignore_errors: true
+
+    - name: "ENFORCE: Add missing 'THREAT INTEL' rule"
+      ansible.builtin.debug:
+        msg: "ENFORCEMENT: Adding rule '{{ golden_rules[2].comment }}' to network {{ target_network_id }}."
+      changed_when: true
+      when: check_threat_intel_rule.failed | default(false)

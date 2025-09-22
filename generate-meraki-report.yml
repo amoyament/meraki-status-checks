@@ -3,6 +3,8 @@
   hosts: localhost
   connection: local
   gather_facts: false
+  vars:
+    meraki_network_id: ""
   module_defaults:
     cisco.meraki.organizations_info:
       meraki_api_key: "{{ meraki_api_key }}"

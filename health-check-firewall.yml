@@ -7,7 +7,6 @@
     - cisco.meraki
     - network.meraki_ops
   vars:
-    meraki_org_id: "537758"
     golden_rules:
       - comment: "Default rule"
         policy: "allow"
@@ -75,14 +74,17 @@
       ignore_errors: true
 
     - name: "ENFORCE: Add missing 'PCI COMPLIANCE' rule"
+      cisco.meraki.networks_appliance_firewall_l3_firewall_rules:
+        meraki_api_key: "{{ meraki_api_key }}"
+        networkId: "{{ target_network_id }}"
+        # Combine the existing rules with the new golden rule to create the final list
+        rules: "{{ meraki_firewalls.firewall_outbound | default([]) + [ golden_rules[1] ] }}"
+      when: check_pci_rule.failed | default(false)
+
+    - name: "ENFORCE: Add missing 'PCI COMPLIANCE' rule"
       ansible.builtin.debug:
         msg: "ENFORCEMENT: Adding rule '{{ golden_rules[1].comment }}' to network {{ target_network_id }}."
       changed_when: true
-      when: check_pci_rule.failed | default(false)
-
-    - name: "COMPLETE: Missing 'PCI COMPLIANCE' rule was successfully added."
-      ansible.builtin.debug:
-        msg: "COMPLETE: '{{ golden_rules[1].comment }}' ADDED to network {{ target_network_id }}."
       when: check_pci_rule.failed | default(false)
 
     # --- POLICY CHECK 3: Threat Intel Rule ---
@@ -95,12 +97,9 @@
       ignore_errors: true
 
     - name: "ENFORCE: Add missing 'THREAT INTEL' rule"
-      ansible.builtin.debug:
-        msg: "ENFORCEMENT: Adding rule '{{ golden_rules[2].comment }}' to network {{ target_network_id }}."
-      changed_when: true
-      when: check_threat_intel_rule.failed | default(false)
-
-    - name: "COMPLETE: Missing 'THREAT INTEL' rule was successfully added."
-      ansible.builtin.debug:
-        msg: "COMPLETE: '{{ golden_rules[2].comment }}' ADDED to network {{ target_network_id }}."
-      when: check_threat_intel_rule.failed | default(false)
+      cisco.meraki.networks_appliance_firewall_l3_firewall_rules:
+        meraki_api_key: "{{ meraki_api_key }}"
+        networkId: "{{ target_network_id }}"
+        # Combine the existing rules with the new golden rule to create the final list
+        rules: "{{ meraki_firewalls.firewall_outbound | default([]) + [ golden_rules[2] ] }}"
+      when: check_pci_rule.failed | default(false)
